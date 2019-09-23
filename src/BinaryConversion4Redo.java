@@ -1,4 +1,5 @@
 import java.io.File;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import javax.swing.JOptionPane;
@@ -32,8 +33,8 @@ public class BinaryConversion4Redo {
         Scanner s = null;
         boolean allGood = false;
         try {
-          s = new Scanner(new File("testClass.txt"));
-          System.out.println("It's open");
+          s = new Scanner(new File("testClassDecTest.txt"));
+          //System.out.println("It's open");
           allGood = true;
         } catch( Exception e ) {
             System.out.println("It's not open");
@@ -63,7 +64,7 @@ public class BinaryConversion4Redo {
                     String binInt = "";
                     try {
                         long x = Long.parseLong(nextNumIn);
-                        binInt = binConvertInt(x);
+                        binInt = binConvertIntNew(x);
                         System.out.println(binInt);
                         
                     } catch (Exception e) {
@@ -72,7 +73,7 @@ public class BinaryConversion4Redo {
                     }
                  
                 } else if(dataType == FLOAT_TYPE) {
-                    
+                    System.out.println("float (32 Bit is " );
                 } else {
                     
                 }
@@ -101,60 +102,57 @@ public class BinaryConversion4Redo {
         return itsADecimal;
     }
     
-    
-    public static String binConvertInt(long num) {
-        //System.out.println("In binConvertInt is " + num);
-        // Set up for the return
-        String binString = "";
+    public static String binConvertIntNew(long num) {
+        //set up final binString
+        String binString2 = "";
         
-        //Now check to see if you have a negative 
         //We will use 2's complement later.
         boolean isNeg = false;
         
         //check for 64 bit overflow
-        //System.out.println("((long)(Math.pow(2.0, 63.0)) * -1)-1 is: " + (((long)(Math.pow(2.0, 63.0)) * -1)-1) );
-        //System.out.println("((long)(Math.pow(2.0, 63.0))) is: " + (((long)(Math.pow(2.0, 63.0)))) );
         if(num < ((long)(Math.pow(2.0, 63.0)) * -1) -1 ||
                 num > (long)(Math.pow(2.0, 63.0))) {
             System.out.println("Overflow Error....");
-            return binString;
+            return binString2;
+        //I let this be a special case, because the Math Pow numbers I was getting would fill the long
         } else if (num == (((long)(Math.pow(2.0, 63.0)) * -1)-1) ) {
             return "1000000000000000000000000000000000000000000000000000000000000000";
         } else if (num == (((long)(Math.pow(2.0, 63.0))))) {
             return "0111111111111111111111111111111111111111111111111111111111111111";
-        } else {
+        } else {         
+            //Get the number of bits according to Java standard sizes...
             int fitBits = getBitsForDecInt(num);
-//            System.out.println("Back from getBits--For: " + num 
-//                    + " fitBits is: " + fitBits);
-//            System.out.println("Before Neg check num is: " + num);
+            
+            //Check for negativity (for 2's complement)
             if(num < 0) {
-                //System.out.println("We have neg num");
                 isNeg = true;
                 num *= -1;
             }
-            //System.out.println("After Neg check num is: " + num);
             
+            //New way dividing by 2
+            byte[] bitArray = new byte[fitBits];
             
-            //for(int b = MAX_BITS-1; b >= 0; b--) {
-            for(int b = fitBits-1; b >= 0; b--) {
-                //System.out.println("num is " + num + " b is " + b);
-                //System.out.println("checking num vs: "  + (long)(Math.pow(2.0, (double)b )));
-                if(num >= (long)(Math.pow(2.0, (double)b ))) {
-                    num -= (long)(Math.pow(2.0, (double)b ));
-                    binString +="1";
-                } else {
-                    binString +="0";
-                }              
+            long theNum = num;
+            int loc = 0;
+            while(theNum > 0) {
+                //System.out.println("In the loop theNum is: " + theNum);
+                bitArray[loc++] = (byte)(theNum % 2);
+                theNum /=2;
+                
             }
-           
+            
+            //System.out.println("For theNum, bitArray is " + Arrays.toString(bitArray));
+            for(int d = bitArray.length-1; d >=0; d--) {
+                binString2 += Byte.toString(bitArray[d]);
+            }
             if(isNeg) {
-                binString = twosComplement(binString);
+                binString2 = twosComplement(binString2);
             }
-             
-            //System.out.println("At end of Int conversion is " + binString);
-            return(binString);
-        }  
+            System.out.println("Using New way: " + binString2);
+        }
+        return binString2;
     }
+
     
     public static String twosComplement(String binString ) {
         //Flip bits
@@ -184,37 +182,44 @@ public class BinaryConversion4Redo {
     
     public static String binConvertDouble(double num) {
         System.out.println("dec num is " + num);
-        // Set up for the return
+        
         String binString = "";
         
-        //Now check to see if you have a negative 
-        //We will use 2's complement later.
+        //for the negativity bit
         boolean isNeg = false;
         
-        //check for 64 bit overflow
-        //System.out.println("((long)(Math.pow(2.0, 63.0)) * -1)-1 is: " + (((long)(Math.pow(2.0, 63.0)) * -1)-1) );
-        //System.out.println("((long)(Math.pow(2.0, 63.0))) is: " + (((long)(Math.pow(2.0, 63.0)))) );
-//        if(num < ((long)(Math.pow(2.0, 63.0)) * -1) -1 ||
-//                num > (long)(Math.pow(2.0, 63.0))) {
-//            System.out.println("Overflow Error....");
-//            return binString;
-//        } else if (num == (((long)(Math.pow(2.0, 63.0)) * -1)-1) ) {
-//            return "1000000000000000000000000000000000000000000000000000000000000000";
-//        } else if (num == (((long)(Math.pow(2.0, 63.0))))) {
-//            return "0111111111111111111111111111111111111111111111111111111111111111";
-//        } else {
-//            int fitBits = getBitsForDecNum(num);
-//            System.out.println("Back from getBits--For: " + num 
-//                   + " fitBits is: " + fitBits);
-//            System.out.println("Before Neg check num is: " + num);
-//            if(num < 0) {
-//                //System.out.println("We have neg num");
-//                isNeg = true;
-//                num *= -1;
-//            }
-//            System.out.println("After Neg check num is: " + num);
-            
-            double thePower = 32.0;
+        //separate the number into Int and decimal parts
+        long integerPart = (long) num;
+        //get bits for the integer part
+        String intBits = binConvertIntNew(integerPart);
+        //isolate the decimal part
+        double decimalPart = num - integerPart;
+        
+        double thePower = 32.0; //floating point has 23 bit mantissa
+        byte[] decBits = new byte[32];  //more than we need
+        
+        for(int b = 0; b < decBits.length; b++) {
+            decimalPart *=2;
+            if((int)(decimalPart) >0) {
+                decBits[b] = 1;
+                decimalPart -= (int)(decimalPart);
+            } else {
+                decBits[b] = 0;
+            }
+        }
+        
+        System.out.println("Dec Part Array: " + Arrays.toString(decBits));
+        
+        String decimalSideBits = "";
+        for(int b= 0; b < decBits.length; b++) {
+            decimalSideBits += Byte.toString(decBits[b]);
+        }
+        //Floating Point number (before scientific notation)
+        String floatBin = intBits + "." + decimalSideBits;
+        System.out.println("Floating Point is: " + floatBin);
+        
+        
+        /*
             int thePointPlaced = 0;
             int thePointMoves = 0;
             
@@ -263,8 +268,8 @@ public class BinaryConversion4Redo {
                 thePower -= 1.0;
             }
             
-            
-            return(binString);
+            */
+            return(floatBin);
         }  
     //}  from error checking
 
